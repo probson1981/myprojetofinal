@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Projeto Final - Residência Embarcatech</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#111a33;
+      --card2:#0f1730;
+      --border: rgba(255,255,255,.10);
+      --text:#e9ecf5;
+      --muted: rgba(233,236,245,.70);
+      --ok:#37d67a;
+      --warn:#ffb020;
+      --bad:#ff4d4f;
+      --accent:#6ea8fe;
+      --shadow: 0 14px 40px rgba(0,0,0,.40);
+      --radius: 18px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(900px 600px at 20% 0%, rgba(110,168,254,.25), transparent 60%),
+        radial-gradient(700px 500px at 80% 10%, rgba(55,214,122,.16), transparent 55%),
+        radial-gradient(700px 500px at 60% 90%, rgba(255,176,32,.14), transparent 55%),
+        var(--bg);
+      color: var(--text);
+      padding: 20px;
+    }
+
+    .wrap{max-width: 1100px; margin: 0 auto;}
+    .header{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;
+      padding: 14px 4px 8px;
+    }
+    .title h1{margin:0; font-size: 1.6rem; letter-spacing:.2px;}
+    .title .sub{margin-top:6px; color: var(--muted); font-size: .95rem;}
+    .top-actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+    a{color: var(--accent); text-decoration:none;}
+    a:hover{text-decoration:underline;}
+
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255,255,255,.04);
+      box-shadow: 0 10px 26px rgba(0,0,0,.22);
+      font-size: .95rem;
+    }
+    .dot{width:10px; height:10px; border-radius:50%; background: rgba(255,255,255,.35);}
+    .dot.ok{background: var(--ok);}
+    .dot.warn{background: var(--warn);}
+    .dot.bad{background: var(--bad);}
+
+    .panel{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .controls{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items:end;
+      margin-top: 10px;
+    }
+
+    label{display:block; color: var(--muted); font-size: .9rem; margin-bottom:6px;}
+    select, button{
+      width:100%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,48,.55);
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+    select:focus, button:focus{box-shadow: 0 0 0 3px rgba(110,168,254,.25);}
+    button{
+      cursor:pointer;
+      border: none;
+      background: linear-gradient(135deg, rgba(110,168,254,.95), rgba(55,214,122,.85));
+      font-weight: 750;
+      letter-spacing:.2px;
+      white-space:nowrap;
+    }
+    button.secondary{
+      background: rgba(255,255,255,.08);
+      border: 1px solid var(--border);
+      font-weight: 650;
+    }
+    button:hover{filter: brightness(1.05);}
+    button:active{transform: translateY(1px);}
+
+    .grid{
+      margin-top: 16px;
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 920px){
+      .grid{grid-template-columns: 1fr;}
+      .controls{grid-template-columns: 1fr;}
+      .top-actions{width:100%; justify-content:space-between;}
+    }
+
+    .metric{
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      position: relative;
+      overflow:hidden;
+    }
+    .metric .k{color: var(--muted); font-size: .9rem;}
+    .metric .v{font-size: 2.0rem; margin-top: 6px; font-weight: 800; letter-spacing:.2px;}
+    .metric .unit{font-size: 1rem; color: var(--muted); font-weight: 650; margin-left: 6px;}
+    .metric .mini{margin-top: 10px; display:flex; gap:10px; align-items:center; justify-content:space-between;}
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.12);
+      padding:6px 10px;
+      border-radius: 999px;
+      font-size: .85rem;
+      color: var(--muted);
+      white-space:nowrap;
+    }
+
+    .bar{
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.06);
+      overflow:hidden;
+      flex:1;
+    }
+    .bar > div{
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(110,168,254,1), rgba(55,214,122,1));
+      border-radius: 999px;
+      transition: width .25s ease;
+    }
+
+    .lower{
+      margin-top: 14px;
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 14px;
+    }
+    @media (max-width: 920px){
+      .lower{grid-template-columns: 1fr;}
+    }
+
+    .box{
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+    }
+    .box h3{
+      margin:0 0 10px;
+      font-size: 1rem;
+      color: var(--text);
+      letter-spacing:.2px;
+    }
+    pre{
+      margin:0;
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.08);
+      color: rgba(233,236,245,.92);
+      min-height: 170px;
+      white-space: pre-wrap;
+      overflow:auto;
+    }
+
+    .meta{margin-top:10px; color: var(--muted); font-size: .9rem;}
+    .rowBtns{display:flex; gap:10px; flex-wrap:wrap;}
+    .rowBtns button{flex:1; min-width: 180px;}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div class="title">
+        <h1>Projeto Final - Residência Embarcatech</h1>
+        <div class="sub">Dashboard (Pico W → MQTT → Server → Web) · Acesso protegido · <a href="/logout">Sair</a></div>
+      </div>
+
+      <div class="top-actions">
+        <div class="pill">
+          <span class="dot" id="dot"></span>
+          <span id="st">Carregando…</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="controls">
+        <div>
+          <label for="sel">Dispositivo</label>
+          <select id="sel"></select>
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button id="btnWatch" type="button">Assistir</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="metric">
+          <div class="k">Temperatura</div>
+          <div class="v"><span id="tempV">—</span><span class="unit">°C</span></div>
+          <div class="mini">
+            <div class="chip" id="tempChip">—</div>
+            <div class="bar"><div id="tempBar"></div></div>
+          </div>
+        </div>
+
+        <div class="metric">
+          <div class="k">Umidade</div>
+          <div class="v"><span id="humV">—</span><span class="unit">%</span></div>
+          <div class="mini">
+            <div class="chip" id="humChip">—</div>
+            <div class="bar"><div id="humBar"></div></div>
+          </div>
+        </div>
+
+        <div class="metric">
+          <div class="k">Luminosidade</div>
+          <div class="v"><span id="luxV">—</span><span class="unit">lux</span></div>
+          <div class="mini">
+            <div class="chip" id="luxChip">—</div>
+            <div class="bar"><div id="luxBar"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lower">
+        <div class="box">
+          <h3>Telemetria (JSON)</h3>
+          <pre id="out">—</pre>
+          <div class="meta" id="meta">—</div>
+        </div>
+
+        <div class="box">
+          <h3>Comandos</h3>
+          <div class="rowBtns">
+            <button id="btnLed" type="button">Toggle LED</button>
+            <button id="btnRefresh" class="secondary" type="button">Atualizar devices</button>
+          </div>
+          <div style="height:10px"></div>
+          <pre id="cmdOut">{}</pre>
+          <div class="meta">Envia JSON para <code>&lt;prefix&gt;/&lt;device&gt;/cmd</code>.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // UI refs
+    const dot = document.getElementById("dot");
+    const st  = document.getElementById("st");
+    const sel = document.getElementById("sel");
+    const btnWatch = document.getElementById("btnWatch");
+    const btnRefresh = document.getElementById("btnRefresh");
+    const btnLed = document.getElementById("btnLed");
+
+    const out = document.getElementById("out");
+    const meta = document.getElementById("meta");
+    const cmdOut = document.getElementById("cmdOut");
+
+    const tempV = document.getElementById("tempV");
+    const humV  = document.getElementById("humV");
+    const luxV  = document.getElementById("luxV");
+
+    const tempBar = document.getElementById("tempBar");
+    const humBar  = document.getElementById("humBar");
+    const luxBar  = document.getElementById("luxBar");
+
+    const tempChip = document.getElementById("tempChip");
+    const humChip  = document.getElementById("humChip");
+    const luxChip  = document.getElementById("luxChip");
+
+    let es = null;
+    let currentDevice = "";
+    let led = false;
+
+    function setStatus(text, cls){
+      st.textContent = text;
+      dot.className = "dot " + cls;
+    }
+
+    async function api(path, opts){
+      const r = await fetch(path, opts);
+      if (r.status === 401) location.href = "/login";
+      return r;
+    }
+
+    function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+    function pct(x){ return Math.round(clamp01(x) * 100); }
+
+    // ranges (ajuste como você quiser)
+    const ranges = {
+      temp: { min: 0,  max: 50 },      // °C
+      hum:  { min: 0,  max: 100 },     // %
+      lux:  { min: 0,  max: 1000 }     // lux (ajuste conforme seu ambiente)
+    };
+
+    function chipForTemp(t){
+      if (!Number.isFinite(t)) return "—";
+      if (t < 18) return "Frio";
+      if (t <= 28) return "Conforto";
+      if (t <= 35) return "Quente";
+      return "Muito quente";
+    }
+    function chipForHum(h){
+      if (!Number.isFinite(h)) return "—";
+      if (h < 30) return "Seco";
+      if (h <= 60) return "Ok";
+      if (h <= 75) return "Úmido";
+      return "Muito úmido";
+    }
+    function chipForLux(l){
+      if (!Number.isFinite(l)) return "—";
+      if (l < 50) return "Baixa";
+      if (l < 300) return "Ambiente";
+      if (l < 700) return "Alta";
+      return "Muito alta";
+    }
+
+    function setMetric(which, value){
+      if (which === "temp"){
+        tempV.textContent = Number.isFinite(value) ? value.toFixed(2) : "—";
+        tempChip.textContent = chipForTemp(value);
+        const p = (value - ranges.temp.min) / (ranges.temp.max - ranges.temp.min);
+        tempBar.style.width = pct(p) + "%";
+      }
+      if (which === "hum"){
+        humV.textContent = Number.isFinite(value) ? value.toFixed(2) : "—";
+        humChip.textContent = chipForHum(value);
+        const p = (value - ranges.hum.min) / (ranges.hum.max - ranges.hum.min);
+        humBar.style.width = pct(p) + "%";
+      }
+      if (which === "lux"){
+        luxV.textContent = Number.isFinite(value) ? value.toFixed(2) : "—";
+        luxChip.textContent = chipForLux(value);
+        const p = (value - ranges.lux.min) / (ranges.lux.max - ranges.lux.min);
+        luxBar.style.width = pct(p) + "%";
+      }
+    }
+
+    async function loadDevices(){
+      setStatus("Buscando devices…", "warn");
+      const r = await api("/api/devices");
+      const j = await r.json();
+
+      const devices = (j.devices || []);
+      sel.innerHTML = "";
+
+      devices.forEach(d => {
+        const o = document.createElement("option");
+        o.value = d; o.textContent = d;
+        sel.appendChild(o);
+      });
+
+      if (devices.length === 0){
+        setStatus("Nenhum device ainda (publique telemetria)", "warn");
+      } else {
+        setStatus("Selecione um device e clique Assistir", "ok");
+      }
+    }
+
+    function startStream(device){
+      if (es) es.close();
+      currentDevice = device;
+
+      setStatus("Abrindo stream…", "warn");
+      out.textContent = "Conectando stream…";
+      meta.textContent = "—";
+
+      es = new EventSource(`/api/stream/${encodeURIComponent(device)}`);
+
+      es.addEventListener("hello", (ev) => {
+        const data = JSON.parse(ev.data);
+        setStatus("Streaming ativo", "ok");
+
+        if (data.last){
+          renderTelemetry(data.last);
+        } else {
+          out.textContent = "Aguardando telemetria…";
+        }
+      });
+
+      es.addEventListener("telemetry", (ev) => {
+        const rec = JSON.parse(ev.data);
+        renderTelemetry(rec);
+      });
+
+      es.onerror = () => setStatus("Stream caiu (Render pode ter dormido). Clique Assistir.", "bad");
+    }
+
+    function renderTelemetry(record){
+      const payload = (record.parsed ?? null);
+
+      // Mostra JSON
+      out.textContent = JSON.stringify(payload ?? record.raw, null, 2);
+      meta.textContent = `Tópico: ${record.topic} · ${new Date(record.ts).toLocaleString()}`;
+
+      // Atualiza cards se tiver os campos esperados
+      if (payload && typeof payload === "object"){
+        const t = Number(payload.temp);
+        const h = Number(payload.hum);
+        const l = Number(payload.lux);
+
+        setMetric("temp", t);
+        setMetric("hum", h);
+        setMetric("lux", l);
+      }
+    }
+
+    btnWatch.onclick = () => {
+      const d = sel.value;
+      if (!d){
+        alert("Nenhum device na lista ainda. Ligue o Pico e aguarde telemetria.");
+        return;
+      }
+      startStream(d);
+    };
+
+    btnRefresh.onclick = async () => {
+      await loadDevices();
+    };
+
+    btnLed.onclick = async () => {
+      if (!currentDevice){
+        alert("Clique Assistir em um device antes de enviar comando.");
+        return;
+      }
+      led = !led;
+      const body = { led: led ? "on" : "off" };
+      cmdOut.textContent = JSON.stringify(body, null, 2);
+
+      const r = await api(`/api/device/${encodeURIComponent(currentDevice)}/cmd`, {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify(body)
+      });
+      if (!r.ok) alert("Falha ao enviar comando.");
+    };
+
+    // init
+    (async () => {
+      setStatus("Inicializando…", "warn");
+      await loadDevices();
+    })();
+  </script>
+</body>
+</html>
