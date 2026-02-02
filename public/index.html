@@ -105,7 +105,7 @@
     .grid{
       margin-top: 16px;
       display:grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr; /* 2x2 para 4 métricas */
       gap: 14px;
     }
     @media (max-width: 920px){
@@ -248,6 +248,16 @@
             <div class="bar"><div id="luxBar"></div></div>
           </div>
         </div>
+
+        <!-- NOVO: brilho da matriz (luxPercLum) -->
+        <div class="metric">
+          <div class="k">Brilho da Matriz</div>
+          <div class="v"><span id="luxPercV">—</span><span class="unit">%</span></div>
+          <div class="mini">
+            <div class="chip" id="luxPercChip">—</div>
+            <div class="bar"><div id="luxPercBar"></div></div>
+          </div>
+        </div>
       </div>
 
       <div class="lower">
@@ -296,6 +306,11 @@
     const humChip  = document.getElementById("humChip");
     const luxChip  = document.getElementById("luxChip");
 
+    // NOVO: refs do luxPercLum
+    const luxPercV    = document.getElementById("luxPercV");
+    const luxPercBar  = document.getElementById("luxPercBar");
+    const luxPercChip = document.getElementById("luxPercChip");
+
     let es = null;
     let currentDevice = "";
     let led = false;
@@ -316,9 +331,10 @@
 
     // ranges (ajuste como você quiser)
     const ranges = {
-      temp: { min: 0,  max: 50 },      // °C
-      hum:  { min: 0,  max: 100 },     // %
-      lux:  { min: 0,  max: 1000 }     // lux (ajuste conforme seu ambiente)
+      temp:    { min: 0,  max: 50 },      // °C
+      hum:     { min: 0,  max: 100 },     // %
+      lux:     { min: 0,  max: 1000 },    // lux
+      luxPerc: { min: 0,  max: 100 }      // %
     };
 
     function chipForTemp(t){
@@ -342,6 +358,15 @@
       if (l < 700) return "Alta";
       return "Muito alta";
     }
+    // NOVO
+    function chipForLuxPerc(p){
+      if (!Number.isFinite(p)) return "—";
+      if (p === 0) return "Apagada";
+      if (p <= 25) return "Baixo";
+      if (p <= 60) return "Médio";
+      if (p <= 90) return "Alto";
+      return "Máximo";
+    }
 
     function setMetric(which, value){
       if (which === "temp"){
@@ -361,6 +386,13 @@
         luxChip.textContent = chipForLux(value);
         const p = (value - ranges.lux.min) / (ranges.lux.max - ranges.lux.min);
         luxBar.style.width = pct(p) + "%";
+      }
+      // NOVO
+      if (which === "luxPerc"){
+        luxPercV.textContent = Number.isFinite(value) ? value.toFixed(0) : "—";
+        luxPercChip.textContent = chipForLuxPerc(value);
+        const p = (value - ranges.luxPerc.min) / (ranges.luxPerc.max - ranges.luxPerc.min);
+        luxPercBar.style.width = pct(p) + "%";
       }
     }
 
@@ -423,13 +455,15 @@
 
       // Atualiza cards se tiver os campos esperados
       if (payload && typeof payload === "object"){
-        const t = Number(payload.temp);
-        const h = Number(payload.hum);
-        const l = Number(payload.lux);
+        const t  = Number(payload.temp);
+        const h  = Number(payload.hum);
+        const l  = Number(payload.lux);
+        const lp = Number(payload.luxPercLum); // NOVO
 
         setMetric("temp", t);
         setMetric("hum", h);
         setMetric("lux", l);
+        setMetric("luxPerc", lp); // NOVO
       }
     }
 
