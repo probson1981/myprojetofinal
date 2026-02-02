@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Dashboard</title>
+  <style>
+    :root { --ok:#2e7d32; --warn:#f57c00; --bad:#c62828; --bg:#f2f2f2; }
+    *{box-sizing:border-box}
+    body{font-family:system-ui,Segoe UI,Roboto,Arial; background:var(--bg); margin:0; padding:16px;}
+    .box{max-width:900px; margin:0 auto; background:#fff; border:1px solid #ddd; border-radius:14px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,.08);}
+    h2{margin:0 0 8px;}
+    .top{display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;}
+    .row{display:grid; gap:10px; grid-template-columns: 1fr 220px 220px;}
+    .row2{display:grid; gap:10px; grid-template-columns: 1fr 1fr;}
+    input,select,button{padding:10px 12px; border:1px solid #ccc; border-radius:10px; font-size:1rem; background:#fff;}
+    button{border:none; cursor:pointer; font-weight:700; color:#fff; background:#4caf50;}
+    button.secondary{background:#607d8b;}
+    .status{display:flex; gap:8px; align-items:center; font-size:.95rem; padding:8px 10px; border:1px solid #eee; border-radius:10px; background:#fafafa;}
+    .dot{width:10px; height:10px; border-radius:50%; background:#bbb;}
+    .dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)}
+    pre{margin:0; padding:12px; background:#f9f9f9; border:1px solid #ddd; border-radius:10px; min-height:160px; white-space:pre-wrap;}
+    .meta{font-size:.85rem; color:#555;}
+    a{color:#1565c0; text-decoration:none;}
+    code{background:#eee; padding:2px 6px; border-radius:6px;}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="top">
+      <div>
+        <h2>Dashboard (Pico W → MQTT → Server → Web)</h2>
+        <div class="meta">Acesso protegido · <a href="/logout">Sair</a></div>
+      </div>
+      <div class="status">
+        <span class="dot" id="dot"></span>
+        <span id="st">Carregando…</span>
+      </div>
+    </div>
+
+    <div style="height:12px"></div>
+
+    <div class="row">
+      <div>
+        <label>Dispositivo (detectados)</label>
+        <select id="sel"></select>
+      </div>
+      <div>
+        <label>Device manual</label>
+        <input id="manual" placeholder="cole o device_id aqui" />
+      </div>
+      <div style="align-self:end">
+        <button id="btnWatch" class="secondary" type="button">Assistir</button>
+      </div>
+    </div>
+
+    <div style="height:10px"></div>
+
+    <div class="row2">
+      <div>
+        <label>Telemetria (JSON)</label>
+        <pre id="out">—</pre>
+        <div class="meta" id="meta">—</div>
+      </div>
+
+      <div>
+        <label>Comando</label>
+        <button id="btnLed" type="button">Toggle LED</button>
+        <div style="height:10px"></div>
+        <pre id="cmdOut">{}</pre>
+        <div class="meta">Envia JSON para <code>&lt;prefix&gt;/&lt;device&gt;/cmd</code>.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const dot = document.getElementById("dot");
+    const st = document.getElementById("st");
+    const sel = document.getElementById("sel");
+    const manual = document.getElementById("manual");
+    const out = document.getElementById("out");
+    const meta = document.getElementById("meta");
+    const btnWatch = document.getElementById("btnWatch");
+    const btnLed = document.getElementById("btnLed");
+    const cmdOut = document.getElementById("cmdOut");
+
+    let es = null;
+    let led = false;
+    let currentDevice = "";
+
+    function setStatus(text, cls){
+      st.textContent = text;
+      dot.className = "dot " + cls;
+    }
+
+    async function api(path, opts){
+      const r = await fetch(path, opts);
+      if (r.status === 401) location.href = "/login";
+      return r;
+    }
+
+    async function loadDevices(){
+      setStatus("Buscando devices…", "warn");
+      const r = await api("/api/devices");
+      const j = await r.json();
+
+      sel.innerHTML = "";
+      (j.devices || []).forEach(d => {
+        const o = document.createElement("option");
+        o.value = d; o.textContent = d;
+        sel.appendChild(o);
+      });
+
+      if ((j.devices || []).length === 0) {
+        setStatus("Nenhum device ainda (publique telemetria)", "warn");
+      } else {
+        setStatus("Pronto", "ok");
+      }
+    }
+
+    function startStream(device){
+      if (es) es.close();
+      currentDevice = device;
+
+      out.textContent = "Conectando stream…";
+      meta.textContent = "—";
+      setStatus("Abrindo stream…", "warn");
+
+      es = new EventSource(`/api/stream/${encodeURIComponent(device)}`);
+
+      es.addEventListener("hello", (ev) => {
+        const data = JSON.parse(ev.data);
+        setStatus("Streaming ativo", "ok");
+
+        if (data.last) {
+          out.textContent = JSON.stringify(data.last.parsed ?? data.last.raw, null, 2);
+          meta.textContent = `Tópico: ${data.last.topic} · ${new Date(data.last.ts).toLocaleString()}`;
+        } else {
+          out.textContent = "Aguardando telemetria…";
+        }
+      });
+
+      es.addEventListener("telemetry", (ev) => {
+        const data = JSON.parse(ev.data);
+        out.textContent = JSON.stringify(data.parsed ?? data.raw, null, 2);
+        meta.textContent = `Tópico: ${data.topic} · ${new Date(data.ts).toLocaleString()}`;
+      });
+
+      es.onerror = () => setStatus("Stream caiu (Render pode ter dormido). Clique Assistir de novo.", "bad");
+    }
+
+    btnWatch.onclick = () => {
+      const d = manual.value.trim() || sel.value;
+      if (!d) return;
+      startStream(d);
+    };
+
+    btnLed.onclick = async () => {
+      if (!currentDevice) {
+        alert("Selecione um device e clique em Assistir.");
+        return;
+      }
+      led = !led;
+      const body = { led: led ? "on" : "off" };
+      cmdOut.textContent = JSON.stringify(body, null, 2);
+
+      const r = await api(`/api/device/${encodeURIComponent(currentDevice)}/cmd`, {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify(body)
+      });
+      if (!r.ok) alert("Falha ao enviar comando.");
+    };
+
+    (async () => {
+      setStatus("Inicializando…", "warn");
+      await loadDevices();
+    })();
+  </script>
+</body>
+</html>
