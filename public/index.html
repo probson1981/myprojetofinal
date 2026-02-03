@@ -75,7 +75,7 @@
     }
 
     label{display:block; color: var(--muted); font-size: .9rem; margin-bottom:6px;}
-    select, button, input{
+    select, button, input[type="range"], input[type="number"]{
       width:100%;
       padding: 12px 14px;
       border-radius: 14px;
@@ -85,8 +85,9 @@
       font-size: 1rem;
       outline: none;
     }
-    select:focus, button:focus, input:focus{box-shadow: 0 0 0 3px rgba(110,168,254,.25);}
-
+    select:focus, button:focus, input[type="range"]:focus, input[type="number"]:focus{
+      box-shadow: 0 0 0 3px rgba(110,168,254,.25);
+    }
     button{
       cursor:pointer;
       border: none;
@@ -103,20 +104,10 @@
     button:hover{filter: brightness(1.05);}
     button:active{transform: translateY(1px);}
 
-    /* range mais “bonito” */
-    input[type="range"]{
-      padding: 8px 12px;
-      height: 46px;
-      accent-color: var(--accent);
-    }
-    input[type="number"]{
-      text-align:center;
-    }
-
     .grid{
       margin-top: 16px;
       display:grid;
-      grid-template-columns: 1fr 1fr; /* 2x2 para 4 métricas */
+      grid-template-columns: 1fr 1fr; /* 2x2 */
       gap: 14px;
     }
     @media (max-width: 920px){
@@ -202,35 +193,42 @@
     .rowBtns{display:flex; gap:10px; flex-wrap:wrap;}
     .rowBtns button{flex:1; min-width: 180px;}
 
-    /* bloco de controle da matriz */
-    .ctrl{
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      background: rgba(0,0,0,.10);
-    }
-    .ctrlTitle{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    /* Segmented control (Auto/Manual) */
+    .seg{
+      display:flex;
+      gap:10px;
       margin-bottom: 10px;
     }
-    .ctrlTitle b{font-size:.95rem;}
-    .ctrlGrid{
-      display:grid;
-      grid-template-columns: 1fr 120px;
-      gap: 10px;
-      align-items:center;
+    .seg button{
+      flex:1;
+      background: rgba(255,255,255,.08);
+      border: 1px solid var(--border);
+      font-weight: 750;
     }
-    .ctrlGrid3{
-      margin-top: 10px;
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+    .seg button.active{
+      background: linear-gradient(135deg, rgba(110,168,254,.95), rgba(55,214,122,.85));
+      border: none;
+      box-shadow: 0 10px 26px rgba(0,0,0,.22);
     }
-    .hintTiny{
-      margin-top: 8px;
+
+    .manualBlock{
+      display:none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: rgba(0,0,0,.10);
+      margin-bottom: 10px;
+    }
+    .manualGrid{
+      display:grid;
+      grid-template-columns: 1fr 110px;
+      gap: 10px;
+      align-items:end;
+    }
+    .hint{
       color: var(--muted);
-      font-size: .85rem;
+      font-size: .88rem;
+      margin-top: 8px;
       line-height: 1.35;
     }
   </style>
@@ -310,56 +308,31 @@
         </div>
 
         <div class="box">
-          <h3>Comandos</h3>
+          <h3>Controle da Matriz</h3>
 
-          <div class="rowBtns">
-            <button id="btnLed" type="button">Toggle LED</button>
-            <button id="btnRefresh" class="secondary" type="button">Atualizar devices</button>
+          <div class="seg">
+            <button id="btnAuto" type="button">Automático</button>
+            <button id="btnManual" type="button">Manual</button>
           </div>
 
-          <!-- NOVO: controle de brilho/mode da matriz -->
-          <div class="ctrl">
-            <div class="ctrlTitle">
-              <b>Matriz WS2812 — Controle</b>
-              <span class="chip" id="modeChip">Modo: Auto</span>
+          <div class="manualBlock" id="manualBlock">
+            <label for="rng">Brilho manual (0–100%)</label>
+            <div class="manualGrid">
+              <input id="rng" type="range" min="0" max="100" step="1" value="100" />
+              <input id="num" type="number" min="0" max="100" step="1" value="100" />
             </div>
-
-            <div class="ctrlGrid3">
-              <button id="btnMatrixAuto" class="secondary" type="button">Modo Automático</button>
-              <button id="btnMatrixManual" class="secondary" type="button">Modo Manual</button>
-            </div>
-
             <div style="height:10px"></div>
+            <button id="btnApply" type="button">Aplicar brilho</button>
+            <div class="hint">O Pico fará o ajuste com <b>fading</b> até atingir o valor alvo.</div>
+          </div>
 
-            <label for="brightRange">Brilho alvo (Manual): 50% a 100%</label>
-            <div class="ctrlGrid">
-              <input id="brightRange" type="range" min="50" max="100" step="1" value="100"/>
-              <input id="brightNum" type="number" min="50" max="100" step="1" value="100"/>
-            </div>
-
-            <div style="height:10px"></div>
-
-            <label for="fadeSel">Fade (ms)</label>
-            <div class="ctrlGrid3">
-              <select id="fadeSel">
-                <option value="200">200 ms (rápido)</option>
-                <option value="500">500 ms</option>
-                <option value="800" selected>800 ms</option>
-                <option value="1200">1200 ms</option>
-                <option value="2000">2000 ms (suave)</option>
-              </select>
-              <button id="btnApplyBright" type="button">Aplicar Brilho</button>
-            </div>
-
-            <div class="hintTiny">
-              O site envia o comando via MQTT (<code>&lt;prefix&gt;/&lt;device&gt;/cmd</code>).<br/>
-              O Pico deve aplicar o <b>fading</b> até o <b>percent</b> alvo.
-            </div>
+          <div class="rowBtns">
+            <button id="btnRefresh" class="secondary" type="button">Atualizar devices</button>
           </div>
 
           <div style="height:10px"></div>
           <pre id="cmdOut">{}</pre>
-          <div class="meta">Ex.: <code>{"matrix":{"mode":"manual","percent":75,"fade_ms":1200}}</code></div>
+          <div class="meta">Envia JSON para <code>&lt;prefix&gt;/&lt;device&gt;/cmd</code>.</div>
         </div>
       </div>
     </div>
@@ -372,7 +345,6 @@
     const sel = document.getElementById("sel");
     const btnWatch = document.getElementById("btnWatch");
     const btnRefresh = document.getElementById("btnRefresh");
-    const btnLed = document.getElementById("btnLed");
 
     const out = document.getElementById("out");
     const meta = document.getElementById("meta");
@@ -381,34 +353,29 @@
     const tempV = document.getElementById("tempV");
     const humV  = document.getElementById("humV");
     const luxV  = document.getElementById("luxV");
+    const luxPercV = document.getElementById("luxPercV");
 
     const tempBar = document.getElementById("tempBar");
     const humBar  = document.getElementById("humBar");
     const luxBar  = document.getElementById("luxBar");
+    const luxPercBar = document.getElementById("luxPercBar");
 
     const tempChip = document.getElementById("tempChip");
     const humChip  = document.getElementById("humChip");
     const luxChip  = document.getElementById("luxChip");
-
-    const luxPercV    = document.getElementById("luxPercV");
-    const luxPercBar  = document.getElementById("luxPercBar");
     const luxPercChip = document.getElementById("luxPercChip");
 
-    // NOVO: controle matriz
-    const modeChip       = document.getElementById("modeChip");
-    const btnMatrixAuto  = document.getElementById("btnMatrixAuto");
-    const btnMatrixManual= document.getElementById("btnMatrixManual");
-    const brightRange    = document.getElementById("brightRange");
-    const brightNum      = document.getElementById("brightNum");
-    const fadeSel        = document.getElementById("fadeSel");
-    const btnApplyBright = document.getElementById("btnApplyBright");
+    // Mode controls
+    const btnAuto = document.getElementById("btnAuto");
+    const btnManual = document.getElementById("btnManual");
+    const manualBlock = document.getElementById("manualBlock");
+    const rng = document.getElementById("rng");
+    const num = document.getElementById("num");
+    const btnApply = document.getElementById("btnApply");
 
     let es = null;
     let currentDevice = "";
-    let led = false;
-
-    // estado local (UI) — o Pico pode ou não confirmar via telemetria
-    let matrixMode = "auto";
+    let currentMode = "auto"; // default
 
     function setStatus(text, cls){
       st.textContent = text;
@@ -423,7 +390,16 @@
 
     function clamp01(x){ return Math.max(0, Math.min(1, x)); }
     function pct(x){ return Math.round(clamp01(x) * 100); }
+    function clampInt(v, a, b){
+      v = Number(v);
+      if (!Number.isFinite(v)) v = a;
+      v = Math.round(v);
+      if (v < a) v = a;
+      if (v > b) v = b;
+      return v;
+    }
 
+    // ranges
     const ranges = {
       temp:    { min: 0,  max: 50 },
       hum:     { min: 0,  max: 100 },
@@ -488,13 +464,19 @@
       }
     }
 
-    function setMatrixModeUI(mode){
-      matrixMode = mode;
-      modeChip.textContent = `Modo: ${mode === "auto" ? "Auto" : "Manual"}`;
-      modeChip.style.opacity = "1";
+    function setModeUI(mode){
+      currentMode = mode;
+      btnAuto.classList.toggle("active", mode === "auto");
+      btnManual.classList.toggle("active", mode === "manual");
+      manualBlock.style.display = (mode === "manual") ? "block" : "none";
     }
 
     async function sendCmd(body){
+      if (!currentDevice){
+        alert("Clique Assistir em um device antes de enviar comando.");
+        return;
+      }
+
       cmdOut.textContent = JSON.stringify(body, null, 2);
 
       const r = await api(`/api/device/${encodeURIComponent(currentDevice)}/cmd`, {
@@ -503,34 +485,16 @@
         body: JSON.stringify(body)
       });
 
-      if (!r.ok) {
+      if (!r.ok){
         alert("Falha ao enviar comando.");
-        return false;
+        return;
       }
-      return true;
     }
-
-    function normalizeManualPercent(x){
-      let p = Number(x);
-      if (!Number.isFinite(p)) p = 100;
-      p = Math.round(p);
-      if (p < 50) p = 50;
-      if (p > 100) p = 100;
-      return p;
-    }
-
-    // sync range <-> number
-    brightRange.addEventListener("input", () => {
-      brightNum.value = String(normalizeManualPercent(brightRange.value));
-    });
-    brightNum.addEventListener("input", () => {
-      const v = normalizeManualPercent(brightNum.value);
-      brightNum.value = String(v);
-      brightRange.value = String(v);
-    });
 
     async function loadDevices(){
       setStatus("Buscando devices…", "warn");
+
+      const prev = sel.value || "";
       const r = await api("/api/devices");
       const j = await r.json();
 
@@ -542,6 +506,9 @@
         o.value = d; o.textContent = d;
         sel.appendChild(o);
       });
+
+      // tenta preservar seleção anterior
+      if (prev && devices.includes(prev)) sel.value = prev;
 
       if (devices.length === 0){
         setStatus("Nenhum device ainda (publique telemetria)", "warn");
@@ -598,6 +565,7 @@
       }
     }
 
+    // Events
     btnWatch.onclick = () => {
       const d = sel.value;
       if (!d){
@@ -611,51 +579,40 @@
       await loadDevices();
     };
 
-    btnLed.onclick = async () => {
-      if (!currentDevice){
-        alert("Clique Assistir em um device antes de enviar comando.");
-        return;
-      }
-      led = !led;
-      const body = { led: led ? "on" : "off" };
-      await sendCmd(body);
+    btnAuto.onclick = async () => {
+      setModeUI("auto");
+      await sendCmd({ mode: "auto" });
     };
 
-    // NOVO: comandos matriz
-    btnMatrixAuto.onclick = async () => {
-      if (!currentDevice){
-        alert("Clique Assistir em um device antes de enviar comando.");
-        return;
-      }
-      const body = { matrix: { mode: "auto" } };
-      const ok = await sendCmd(body);
-      if (ok) setMatrixModeUI("auto");
+    btnManual.onclick = async () => {
+      setModeUI("manual");
+      const v = clampInt(num.value, 0, 100);
+      rng.value = String(v);
+      num.value = String(v);
+      await sendCmd({ mode: "manual", matrixPercent: v });
     };
 
-    btnMatrixManual.onclick = () => {
-      setMatrixModeUI("manual");
-    };
+    // sincroniza slider <-> number (não envia ainda)
+    rng.addEventListener("input", () => {
+      num.value = String(clampInt(rng.value, 0, 100));
+    });
+    num.addEventListener("input", () => {
+      const v = clampInt(num.value, 0, 100);
+      num.value = String(v);
+      rng.value = String(v);
+    });
 
-    btnApplyBright.onclick = async () => {
-      if (!currentDevice){
-        alert("Clique Assistir em um device antes de enviar comando.");
-        return;
-      }
-      const percent = normalizeManualPercent(brightRange.value);
-      const fade_ms = Number(fadeSel.value) || 800;
-
-      const body = {
-        matrix: { mode: "manual", percent, fade_ms }
-      };
-
-      const ok = await sendCmd(body);
-      if (ok) setMatrixModeUI("manual");
+    // envia só quando clicar aplicar (evita flood)
+    btnApply.onclick = async () => {
+      if (currentMode !== "manual") setModeUI("manual");
+      const v = clampInt(num.value, 0, 100);
+      await sendCmd({ mode: "manual", matrixPercent: v });
     };
 
     // init
     (async () => {
       setStatus("Inicializando…", "warn");
-      setMatrixModeUI("auto");
+      setModeUI("auto");
       await loadDevices();
     })();
   </script>
