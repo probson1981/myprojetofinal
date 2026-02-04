@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Projeto Final - Residência Embarcatech</title>
+  <title>Projeto Embarcartech — Iluminação Pública Inteligente</title>
   <style>
     :root{
       --bg:#0b1020;
@@ -19,20 +19,7 @@
       --shadow: 0 14px 40px rgba(0,0,0,.40);
       --radius: 18px;
     }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-    }
-    .logo{
-      width: 110px;        /* ajuste como quiser */
-      height: auto;
-      object-fit: contain;
-      border-radius: 10px;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.10);
-      padding: 8px;
-    }
+
     *{box-sizing:border-box}
     body{
       margin:0;
@@ -47,12 +34,45 @@
     }
 
     .wrap{max-width: 1100px; margin: 0 auto;}
+
     .header{
-      display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
       padding: 14px 4px 8px;
     }
-    .title h1{margin:0; font-size: 1.6rem; letter-spacing:.2px;}
-    .title .sub{margin-top:6px; color: var(--muted); font-size: .95rem;}
+
+    .brand{
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+    }
+
+    .logo{
+      width:64px;
+      height:64px;
+      object-fit:cover;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 26px rgba(0,0,0,.22);
+      background: rgba(255,255,255,.04);
+    }
+
+    .title h1{
+      margin:0;
+      font-size: 1.25rem;
+      line-height: 1.25;
+      letter-spacing:.2px;
+    }
+    .title .sub{
+      margin-top:8px;
+      color: var(--muted);
+      font-size: .95rem;
+      line-height: 1.35;
+    }
+
     .top-actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
     a{color: var(--accent); text-decoration:none;}
     a:hover{text-decoration:underline;}
@@ -77,6 +97,7 @@
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       padding: 16px;
+      margin-top: 8px;
     }
 
     .controls{
@@ -88,7 +109,8 @@
     }
 
     label{display:block; color: var(--muted); font-size: .9rem; margin-bottom:6px;}
-    select, button, input[type="range"], input[type="number"]{
+
+    select, button, input[type="range"]{
       width:100%;
       padding: 12px 14px;
       border-radius: 14px;
@@ -98,7 +120,11 @@
       font-size: 1rem;
       outline: none;
     }
-    select:focus, button:focus, input:focus{box-shadow: 0 0 0 3px rgba(110,168,254,.25);}
+
+    select:focus, button:focus, input[type="range"]:focus{
+      box-shadow: 0 0 0 3px rgba(110,168,254,.25);
+    }
+
     button{
       cursor:pointer;
       border: none;
@@ -113,11 +139,6 @@
       border: 1px solid var(--border);
       font-weight: 650;
     }
-    button.active{
-      box-shadow: 0 0 0 3px rgba(55,214,122,.20);
-      outline: 1px solid rgba(55,214,122,.35);
-      filter: brightness(1.08);
-    }
     button:hover{filter: brightness(1.05);}
     button:active{transform: translateY(1px);}
 
@@ -126,11 +147,6 @@
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap: 14px;
-    }
-    @media (max-width: 920px){
-      .grid{grid-template-columns: 1fr;}
-      .controls{grid-template-columns: 1fr;}
-      .top-actions{width:100%; justify-content:space-between;}
     }
 
     .metric{
@@ -145,6 +161,7 @@
     .metric .v{font-size: 2.0rem; margin-top: 6px; font-weight: 800; letter-spacing:.2px;}
     .metric .unit{font-size: 1rem; color: var(--muted); font-weight: 650; margin-left: 6px;}
     .metric .mini{margin-top: 10px; display:flex; gap:10px; align-items:center; justify-content:space-between;}
+
     .chip{
       display:inline-flex; align-items:center; gap:8px;
       border:1px solid var(--border);
@@ -172,57 +189,79 @@
       transition: width .25s ease;
     }
 
-    .lower{
-      margin-top: 14px;
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
+    .meta{
+      margin-top:10px;
+      color: var(--muted);
+      font-size: .9rem;
+      word-break: break-word;
     }
 
-    .box{
+    /* comandos */
+    .cmdBox{
+      margin-top: 14px;
       background: rgba(255,255,255,.04);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 14px;
     }
-    .box h3{
+    .cmdBox h3{
       margin:0 0 10px;
       font-size: 1rem;
-      color: var(--text);
       letter-spacing:.2px;
     }
-
-    .cmdGrid{
+    .seg{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom: 12px;
+    }
+    .seg button{
+      flex:1;
+      min-width: 220px;
+    }
+    .seg button.active{
+      outline: 2px solid rgba(110,168,254,.65);
+      box-shadow: 0 0 0 3px rgba(110,168,254,.18);
+      filter: brightness(1.07);
+    }
+    .row{
       display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: end;
+      margin-top: 10px;
     }
     @media (max-width: 920px){
-      .cmdGrid{grid-template-columns: 1fr;}
+      .controls{grid-template-columns: 1fr;}
+      .grid{grid-template-columns: 1fr;}
+      .row{grid-template-columns: 1fr;}
     }
-
-    .rowBtns{display:flex; gap:10px; flex-wrap:wrap;}
-    .rowBtns button{flex:1; min-width: 180px;}
-
-    .inline{
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    .hint{
+      color: var(--muted);
+      font-size: .9rem;
+      margin-top: 8px;
     }
-    .inline > *{flex:1;}
-    .small{font-size:.9rem; color: var(--muted);}
-    .meta{margin-top:10px; color: var(--muted); font-size: .9rem;}
-    .hide{display:none;}
+    .val{
+      text-align:right;
+      color: var(--muted);
+      font-size: .95rem;
+    }
   </style>
 </head>
 
 <body>
   <div class="wrap">
     <div class="header">
-      <div class="title">
-        <div class="brand">
-          <img class="logo" src="embtech.jpg" alt="Logo Embarcatech"/>
-          <div>
-            <h1>Projeto Final - Residência Embarcatech</h1>
-            <div class="sub">Dashboard (Pico W → MQTT → Server → Web) · Acesso protegido · <a href="/logout">Sair</a></div>
+      <div class="brand">
+        <!-- LOGO (arquivo embtech.jpg na pasta public/) -->
+        <img class="logo" src="embtech.jpg" alt="Logo Embarcatech"/>
+
+        <div class="title">
+          <h1>
+            Projeto Embarcartech “Iluminação Pública Inteligente como Plataforma de Monitoramento Ambiental em Cidades Inteligentes (Smart Cities)”
+          </h1>
+          <div class="sub">
+            Autor: Patrício Alves (patricio_alves@yahoo.com.br) · Acesso protegido · <a href="/logout">Sair</a>
           </div>
         </div>
       </div>
@@ -240,13 +279,11 @@
         <div>
           <label for="sel">Luminária Inteligente</label>
           <select id="sel"></select>
-          <div class="meta" id="deviceHint">—</div>
+          <div class="meta" id="meta">—</div>
         </div>
         <div>
           <label>&nbsp;</label>
           <button id="btnWatch" type="button">Assistir</button>
-          <div style="height:10px"></div>
-          <button id="btnRefresh" class="secondary" type="button">Atualizar lista agora</button>
         </div>
       </div>
 
@@ -288,35 +325,33 @@
         </div>
       </div>
 
-      <div class="lower">
-        <div class="box">
-          <h3>Comandos — Matriz de LED</h3>
+      <!-- COMANDOS (mantidos) -->
+      <div class="cmdBox">
+        <h3>Controle da Matriz de LED</h3>
 
-          <div class="cmdGrid">
-            <div class="box" style="padding:12px;">
-              <div class="small">Modo</div>
-              <div class="rowBtns" style="margin-top:10px;">
-                <button id="btnAuto" type="button" class="secondary">Automático</button>
-                <button id="btnManual" type="button" class="secondary">Manual</button>
-              </div>
-              <div class="meta">Automático = seu brilho via lux (task atual). Manual = você define o %.</div>
-            </div>
-
-            <div class="box" style="padding:12px;">
-              <div class="small">Brilho manual (0–100%)</div>
-              <div class="inline" style="margin-top:10px;">
-                <input id="rngBright" type="range" min="0" max="100" step="1" value="80"/>
-                <input id="numBright" type="number" min="0" max="100" step="1" value="80"/>
-              </div>
-              <div style="height:10px"></div>
-              <button id="btnSendBright" type="button">Enviar brilho</button>
-              <div class="meta" id="cmdMeta">—</div>
-            </div>
-          </div>
-
+        <div class="seg">
+          <button id="btnAuto" type="button" class="secondary active">Modo Automático</button>
+          <button id="btnManual" type="button" class="secondary">Modo Manual</button>
         </div>
-      </div>
 
+        <div class="row">
+          <div>
+            <label for="rng">Brilho Manual (0% a 100%)</label>
+            <input id="rng" type="range" min="0" max="100" step="1" value="80"/>
+            <div class="hint">Ao mudar o modo/manual, o comando é enviado para <code>&lt;prefix&gt;/&lt;device&gt;/cmd</code>.</div>
+          </div>
+          <div class="val">
+            <div>Selecionado:</div>
+            <div style="font-size:1.4rem; font-weight:800; color:var(--text)"><span id="rngV">80</span>%</div>
+          </div>
+        </div>
+
+        <div class="row" style="grid-template-columns: 1fr;">
+          <button id="btnSend" type="button">Enviar comando</button>
+        </div>
+
+        <div class="meta" id="cmdMeta">—</div>
+      </div>
     </div>
   </div>
 
@@ -326,36 +361,38 @@
     const st  = document.getElementById("st");
     const sel = document.getElementById("sel");
     const btnWatch = document.getElementById("btnWatch");
-    const btnRefresh = document.getElementById("btnRefresh");
-    const deviceHint = document.getElementById("deviceHint");
+    const meta = document.getElementById("meta");
 
     const tempV = document.getElementById("tempV");
     const humV  = document.getElementById("humV");
     const luxV  = document.getElementById("luxV");
-    const luxPercV = document.getElementById("luxPercV");
 
     const tempBar = document.getElementById("tempBar");
     const humBar  = document.getElementById("humBar");
     const luxBar  = document.getElementById("luxBar");
-    const luxPercBar = document.getElementById("luxPercBar");
 
     const tempChip = document.getElementById("tempChip");
     const humChip  = document.getElementById("humChip");
     const luxChip  = document.getElementById("luxChip");
+
+    const luxPercV    = document.getElementById("luxPercV");
+    const luxPercBar  = document.getElementById("luxPercBar");
     const luxPercChip = document.getElementById("luxPercChip");
 
-    // comandos (modo + brilho)
-    const btnAuto = document.getElementById("btnAuto");
+    // comandos
+    const btnAuto   = document.getElementById("btnAuto");
     const btnManual = document.getElementById("btnManual");
-    const rngBright = document.getElementById("rngBright");
-    const numBright = document.getElementById("numBright");
-    const btnSendBright = document.getElementById("btnSendBright");
-    const cmdMeta = document.getElementById("cmdMeta");
+    const rng       = document.getElementById("rng");
+    const rngV      = document.getElementById("rngV");
+    const btnSend   = document.getElementById("btnSend");
+    const cmdMeta   = document.getElementById("cmdMeta");
 
     let es = null;
     let currentDevice = "";
-    let currentMode = "auto"; // "auto" | "manual"
-    let lastDevicesKey = "";  // para detectar mudanças
+    let retryMs = 1000;
+    let retryTimer = null;
+
+    let mode = "auto"; // "auto" | "manual"
 
     function setStatus(text, cls){
       st.textContent = text;
@@ -371,7 +408,6 @@
     function clamp01(x){ return Math.max(0, Math.min(1, x)); }
     function pct(x){ return Math.round(clamp01(x) * 100); }
 
-    // ranges
     const ranges = {
       temp:    { min: 0,  max: 50 },
       hum:     { min: 0,  max: 100 },
@@ -436,71 +472,61 @@
       }
     }
 
-    function normalizePercent(v){
-      let x = Number(v);
-      if (!Number.isFinite(x)) x = 0;
-      x = Math.round(x);
-      if (x < 0) x = 0;
-      if (x > 100) x = 100;
-      return x;
-    }
-
-    function setMode(mode){
-      currentMode = mode === "manual" ? "manual" : "auto";
-      btnAuto.classList.toggle("active", currentMode === "auto");
-      btnManual.classList.toggle("active", currentMode === "manual");
-    }
-
-    async function loadDevices({silent=false} = {}){
-      if (!silent) setStatus("Buscando luminárias…", "warn");
-
+    async function loadDevices({ keepSelection = true } = {}){
+      const prev = keepSelection ? sel.value : "";
       const r = await api("/api/devices");
       const j = await r.json();
 
       const devices = (j.devices || []);
-      const key = devices.join("|");
+      const newSet = new Set(devices);
 
-      // só atualiza DOM se mudou (evita piscar e perder seleção)
-      if (key !== lastDevicesKey){
-        lastDevicesKey = key;
+      sel.innerHTML = "";
+      for (const d of devices) {
+        const o = document.createElement("option");
+        o.value = d;
+        o.textContent = d;
+        sel.appendChild(o);
+      }
 
-        const prev = sel.value;
-        sel.innerHTML = "";
-
-        devices.forEach(d => {
-          const o = document.createElement("option");
-          o.value = d; o.textContent = d;
-          sel.appendChild(o);
-        });
-
-        // tenta manter seleção
-        if (prev && devices.includes(prev)) sel.value = prev;
-
-        deviceHint.textContent = devices.length
-          ? `Detectadas: ${devices.length} luminária(s).`
-          : "Nenhuma luminária ainda (publique telemetria).";
+      if (prev && newSet.has(prev)) {
+        sel.value = prev;
+      } else if (devices.length > 0) {
+        sel.value = devices[0];
       }
 
       if (devices.length === 0){
-        if (!silent) setStatus("Nenhuma luminária ainda (publique telemetria)", "warn");
+        setStatus("Nenhuma luminária ainda (publique telemetria)", "warn");
       } else {
-        if (!silent) setStatus("Selecione uma luminária e clique Assistir", "ok");
+        if (!currentDevice) setStatus("Selecione e clique Assistir", "ok");
       }
     }
 
+    function closeStream(){
+      if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
+      if (es) { try { es.close(); } catch {} }
+      es = null;
+    }
+
     function startStream(device){
-      if (es) es.close();
+      closeStream();
       currentDevice = device;
 
       setStatus("Abrindo stream…", "warn");
-      cmdMeta.textContent = `Assistindo: ${currentDevice}`;
+      meta.textContent = "Conectando…";
 
-      es = new EventSource(`/api/stream/${encodeURIComponent(device)}`);
+      retryMs = 1000;
+
+      const url = `/api/stream/${encodeURIComponent(device)}`;
+      es = new EventSource(url);
+
+      es.onopen = () => { retryMs = 1000; };
 
       es.addEventListener("hello", (ev) => {
         const data = JSON.parse(ev.data);
         setStatus("Streaming ativo", "ok");
+
         if (data.last) renderTelemetry(data.last);
+        else meta.textContent = "Aguardando telemetria…";
       });
 
       es.addEventListener("telemetry", (ev) => {
@@ -508,11 +534,22 @@
         renderTelemetry(rec);
       });
 
-      es.onerror = () => setStatus("Stream caiu (Render pode ter dormido). Clique Assistir.", "bad");
+      es.onerror = () => {
+        setStatus("Stream caiu. Reconectando…", "bad");
+        try { es.close(); } catch {}
+        es = null;
+
+        retryTimer = setTimeout(() => {
+          if (currentDevice) startStream(currentDevice);
+        }, retryMs);
+
+        retryMs = Math.min(retryMs * 2, 15000);
+      };
     }
 
     function renderTelemetry(record){
       const payload = (record.parsed ?? null);
+      meta.textContent = `Última atualização: ${new Date(record.ts).toLocaleString()} · Tópico: ${record.topic}`;
 
       if (payload && typeof payload === "object"){
         const t  = Number(payload.temp);
@@ -527,24 +564,52 @@
       }
     }
 
-    async function sendCmd(obj){
+    // --- comandos (MQTT -> server -> pico) ---
+    function setMode(next){
+      mode = next;
+
+      // destaque visual (selecionado / deselecionado)
+      btnAuto.classList.toggle("active", mode === "auto");
+      btnManual.classList.toggle("active", mode === "manual");
+
+      // habilita slider somente no manual
+      rng.disabled = (mode !== "manual");
+
+      cmdMeta.textContent = `Modo selecionado: ${mode === "auto" ? "Automático" : "Manual"}`;
+    }
+
+    async function sendCmd(){
       if (!currentDevice){
         alert("Clique Assistir em uma luminária antes de enviar comando.");
-        return false;
+        return;
       }
+
+      // JSON sugerido (ajuste no firmware se desejar):
+      // auto:   { mode:"auto" }
+      // manual: { mode:"manual", brightness: 0..100 }
+      const brightness = Number(rng.value);
+
+      const body = (mode === "auto")
+        ? { mode: "auto" }
+        : { mode: "manual", brightness };
+
+      cmdMeta.textContent = `Enviando comando: ${JSON.stringify(body)}`;
+
       const r = await api(`/api/device/${encodeURIComponent(currentDevice)}/cmd`, {
         method: "POST",
         headers: { "Content-Type":"application/json" },
-        body: JSON.stringify(obj)
+        body: JSON.stringify(body)
       });
-      if (!r.ok){
+
+      if (!r.ok) {
         alert("Falha ao enviar comando.");
-        return false;
+        return;
       }
-      return true;
+
+      cmdMeta.textContent = `Comando enviado em ${new Date().toLocaleString()} → ${JSON.stringify(body)}`;
     }
 
-    // Events
+    // events
     btnWatch.onclick = () => {
       const d = sel.value;
       if (!d){
@@ -554,48 +619,27 @@
       startStream(d);
     };
 
-    btnRefresh.onclick = async () => {
-      await loadDevices();
-    };
+    btnAuto.onclick = () => { setMode("auto"); };
+    btnManual.onclick = () => { setMode("manual"); };
 
-    // modo
-    btnAuto.onclick = async () => {
-      setMode("auto");
-      const body = { mode: "auto" };
-      cmdMeta.textContent = `Enviando: ${JSON.stringify(body)}`;
-      await sendCmd(body);
-    };
+    rng.oninput = () => { rngV.textContent = rng.value; };
 
-    btnManual.onclick = async () => {
-      setMode("manual");
-      const body = { mode: "manual" };
-      cmdMeta.textContent = `Enviando: ${JSON.stringify(body)}`;
-      await sendCmd(body);
-    };
-
-    // sync slider <-> number
-    rngBright.oninput = () => { numBright.value = normalizePercent(rngBright.value); };
-    numBright.oninput = () => { rngBright.value = normalizePercent(numBright.value); };
-
-    btnSendBright.onclick = async () => {
-      setMode("manual"); // normalmente quem manda % quer manual
-      const p = normalizePercent(numBright.value);
-
-      // comando pro Pico (você trata no firmware)
-      const body = { mode: "manual", brightness: p };
-
-      cmdMeta.textContent = `Enviando: ${JSON.stringify(body)}`;
-      await sendCmd(body);
-    };
+    btnSend.onclick = () => { sendCmd().catch(() => alert("Erro ao enviar comando.")); };
 
     // init
     (async () => {
       setStatus("Inicializando…", "warn");
-      setMode("auto");
-      await loadDevices();
+      await loadDevices({ keepSelection: false });
 
-      // auto-refresh da lista sem F5
-      setInterval(() => loadDevices({silent:true}), 5000);
+      // padrão: auto
+      setMode("auto");
+      rngV.textContent = rng.value;
+      rng.disabled = true;
+
+      // auto-refresh lista (sem F5)
+      setInterval(() => {
+        loadDevices({ keepSelection: true }).catch(() => {});
+      }, 5000);
     })();
   </script>
 </body>
