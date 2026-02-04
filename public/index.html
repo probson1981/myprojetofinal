@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Projeto Final - Residência Embarcatech</title>
+  <title>Projeto Embarcatech — Iluminação Pública Inteligente (Smart Cities)</title>
   <style>
     :root{
       --bg:#0b1020;
@@ -34,12 +34,32 @@
     }
 
     .wrap{max-width: 1100px; margin: 0 auto;}
+
     .header{
       display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;
       padding: 14px 4px 8px;
     }
-    .title h1{margin:0; font-size: 1.6rem; letter-spacing:.2px;}
-    .title .sub{margin-top:6px; color: var(--muted); font-size: .95rem;}
+
+    .brand{
+      display:flex;
+      gap:14px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .logo{
+      width: 150px;
+      height: auto;
+      display:block;
+      border-radius: 12px;
+      box-shadow: 0 10px 26px rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      padding: 8px;
+    }
+
+    .title h1{margin:0; font-size: 1.35rem; letter-spacing:.2px; line-height:1.2;}
+    .title .sub{margin-top:8px; color: var(--muted); font-size: .95rem; line-height:1.35;}
+    .title .sub strong{color: var(--text); font-weight: 750;}
     .top-actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
     a{color: var(--accent); text-decoration:none;}
     a:hover{text-decoration:underline;}
@@ -75,7 +95,8 @@
     }
 
     label{display:block; color: var(--muted); font-size: .9rem; margin-bottom:6px;}
-    select, button, input[type="range"], input[type="number"]{
+
+    select, button, input[type="range"]{
       width:100%;
       padding: 12px 14px;
       border-radius: 14px;
@@ -85,9 +106,8 @@
       font-size: 1rem;
       outline: none;
     }
-    select:focus, button:focus, input[type="range"]:focus, input[type="number"]:focus{
-      box-shadow: 0 0 0 3px rgba(110,168,254,.25);
-    }
+    select:focus, button:focus, input[type="range"]:focus{box-shadow: 0 0 0 3px rgba(110,168,254,.25);}
+
     button{
       cursor:pointer;
       border: none;
@@ -104,16 +124,35 @@
     button:hover{filter: brightness(1.05);}
     button:active{transform: translateY(1px);}
 
+    /* ✅ Botões de modo com destaque */
+    .modeRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .modeBtn{
+      flex:1;
+      min-width: 160px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid var(--border);
+      font-weight: 750;
+    }
+    .modeBtn.active{
+      background: linear-gradient(135deg, rgba(110,168,254,.95), rgba(55,214,122,.85));
+      border: none;
+    }
+
     .grid{
       margin-top: 16px;
       display:grid;
-      grid-template-columns: 1fr 1fr; /* 2x2 */
+      grid-template-columns: 1fr 1fr;
       gap: 14px;
     }
     @media (max-width: 920px){
       .grid{grid-template-columns: 1fr;}
       .controls{grid-template-columns: 1fr;}
       .top-actions{width:100%; justify-content:space-between;}
+      .logo{width: 130px;}
     }
 
     .metric{
@@ -158,11 +197,8 @@
     .lower{
       margin-top: 14px;
       display:grid;
-      grid-template-columns: 1.2fr .8fr;
+      grid-template-columns: 1fr;
       gap: 14px;
-    }
-    @media (max-width: 920px){
-      .lower{grid-template-columns: 1fr;}
     }
 
     .box{
@@ -177,6 +213,7 @@
       color: var(--text);
       letter-spacing:.2px;
     }
+
     pre{
       margin:0;
       padding: 12px;
@@ -190,56 +227,54 @@
     }
 
     .meta{margin-top:10px; color: var(--muted); font-size: .9rem;}
-    .rowBtns{display:flex; gap:10px; flex-wrap:wrap;}
-    .rowBtns button{flex:1; min-width: 180px;}
 
-    /* Segmented control (Auto/Manual) */
-    .seg{
-      display:flex;
-      gap:10px;
-      margin-bottom: 10px;
-    }
-    .seg button{
-      flex:1;
-      background: rgba(255,255,255,.08);
-      border: 1px solid var(--border);
-      font-weight: 750;
-    }
-    .seg button.active{
-      background: linear-gradient(135deg, rgba(110,168,254,.95), rgba(55,214,122,.85));
-      border: none;
-      box-shadow: 0 10px 26px rgba(0,0,0,.22);
-    }
+    /* ✅ Pedido: não mostrar mais as caixas de JSON */
+    #out, #cmdOut { display:none; }
+    .telemetryBox { display:none; }
 
-    .manualBlock{
-      display:none;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 12px;
-      background: rgba(0,0,0,.10);
-      margin-bottom: 10px;
-    }
-    .manualGrid{
+    /* slider “bonitinho” */
+    .rangeRow{
       display:grid;
-      grid-template-columns: 1fr 110px;
-      gap: 10px;
-      align-items:end;
+      grid-template-columns: 1fr auto;
+      gap:12px;
+      align-items:center;
+    }
+    .rangeVal{
+      min-width: 64px;
+      text-align:right;
+      color: var(--text);
+      font-weight: 800;
     }
     .hint{
       color: var(--muted);
-      font-size: .88rem;
-      margin-top: 8px;
-      line-height: 1.35;
+      font-size: .9rem;
+      margin-top: 10px;
+      line-height: 1.3;
     }
+    .btnRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 10px;
+    }
+    .btnRow button{flex:1; min-width: 200px;}
   </style>
 </head>
 
 <body>
   <div class="wrap">
     <div class="header">
-      <div class="title">
-        <h1>Projeto Final - Residência Embarcatech</h1>
-        <div class="sub">Dashboard (Pico W → MQTT → Server → Web) · Acesso protegido · <a href="/logout">Sair</a></div>
+      <div class="brand">
+        <img class="logo" src="/img/logo-embarcatech.png" alt="Logo Embarcatech" />
+
+        <div class="title">
+          <h1>Projeto Embarcatech</h1>
+          <div class="sub">
+            <strong>“Iluminação Pública Inteligente como Plataforma de Monitoramento Ambiental em Cidades Inteligentes (Smart Cities)”</strong><br/>
+            Autor: Patrício Alves (<a href="mailto:patricio_alves@yahoo.com.br">patricio_alves@yahoo.com.br</a>)<br/>
+            Dashboard (Pico W → MQTT → Server → Web) · Acesso protegido · <a href="/logout">Sair</a>
+          </div>
+        </div>
       </div>
 
       <div class="top-actions">
@@ -301,38 +336,39 @@
       </div>
 
       <div class="lower">
-        <div class="box">
+        <!-- escondido -->
+        <div class="box telemetryBox">
           <h3>Telemetria (JSON)</h3>
           <pre id="out">—</pre>
           <div class="meta" id="meta">—</div>
         </div>
 
         <div class="box">
-          <h3>Controle da Matriz</h3>
+          <h3>Comandos — Matriz de LEDs</h3>
 
-          <div class="seg">
-            <button id="btnAuto" type="button">Automático</button>
-            <button id="btnManual" type="button">Manual</button>
+          <label>Modo</label>
+          <div class="modeRow">
+            <button id="btnAuto" class="modeBtn" type="button">Automático</button>
+            <button id="btnManual" class="modeBtn" type="button">Manual</button>
           </div>
 
-          <div class="manualBlock" id="manualBlock">
-            <label for="rng">Brilho manual (0–100%)</label>
-            <div class="manualGrid">
-              <input id="rng" type="range" min="0" max="100" step="1" value="100" />
-              <input id="num" type="number" min="0" max="100" step="1" value="100" />
-            </div>
-            <div style="height:10px"></div>
-            <button id="btnApply" type="button">Aplicar brilho</button>
-            <div class="hint">O Pico fará o ajuste com <b>fading</b> até atingir o valor alvo.</div>
+          <div style="height:12px"></div>
+
+          <label for="rngBright">Brilho (Manual)</label>
+          <div class="rangeRow">
+            <input id="rngBright" type="range" min="0" max="100" step="1" value="80" />
+            <div class="rangeVal"><span id="rngBrightVal">80</span>%</div>
           </div>
 
-          <div class="rowBtns">
+          <div class="btnRow">
+            <button id="btnSend" type="button">Enviar comando</button>
             <button id="btnRefresh" class="secondary" type="button">Atualizar devices</button>
           </div>
 
-          <div style="height:10px"></div>
+          <div class="hint" id="meta2">Selecione um device e clique Assistir.</div>
+
+          <!-- escondido, mas mantido pra não quebrar o JS -->
           <pre id="cmdOut">{}</pre>
-          <div class="meta">Envia JSON para <code>&lt;prefix&gt;/&lt;device&gt;/cmd</code>.</div>
         </div>
       </div>
     </div>
@@ -344,38 +380,40 @@
     const st  = document.getElementById("st");
     const sel = document.getElementById("sel");
     const btnWatch = document.getElementById("btnWatch");
-    const btnRefresh = document.getElementById("btnRefresh");
 
+    const btnRefresh = document.getElementById("btnRefresh");
+    const btnAuto = document.getElementById("btnAuto");
+    const btnManual = document.getElementById("btnManual");
+    const btnSend = document.getElementById("btnSend");
+
+    const rngBright = document.getElementById("rngBright");
+    const rngBrightVal = document.getElementById("rngBrightVal");
+
+    // estes continuam existindo (mas escondidos) para não quebrar o JS
     const out = document.getElementById("out");
     const meta = document.getElementById("meta");
     const cmdOut = document.getElementById("cmdOut");
+    const meta2 = document.getElementById("meta2");
 
     const tempV = document.getElementById("tempV");
     const humV  = document.getElementById("humV");
     const luxV  = document.getElementById("luxV");
-    const luxPercV = document.getElementById("luxPercV");
 
     const tempBar = document.getElementById("tempBar");
     const humBar  = document.getElementById("humBar");
     const luxBar  = document.getElementById("luxBar");
-    const luxPercBar = document.getElementById("luxPercBar");
 
     const tempChip = document.getElementById("tempChip");
     const humChip  = document.getElementById("humChip");
     const luxChip  = document.getElementById("luxChip");
-    const luxPercChip = document.getElementById("luxPercChip");
 
-    // Mode controls
-    const btnAuto = document.getElementById("btnAuto");
-    const btnManual = document.getElementById("btnManual");
-    const manualBlock = document.getElementById("manualBlock");
-    const rng = document.getElementById("rng");
-    const num = document.getElementById("num");
-    const btnApply = document.getElementById("btnApply");
+    const luxPercV    = document.getElementById("luxPercV");
+    const luxPercBar  = document.getElementById("luxPercBar");
+    const luxPercChip = document.getElementById("luxPercChip");
 
     let es = null;
     let currentDevice = "";
-    let currentMode = "auto"; // default
+    let selectedMode = "auto"; // "auto" | "manual"
 
     function setStatus(text, cls){
       st.textContent = text;
@@ -390,16 +428,7 @@
 
     function clamp01(x){ return Math.max(0, Math.min(1, x)); }
     function pct(x){ return Math.round(clamp01(x) * 100); }
-    function clampInt(v, a, b){
-      v = Number(v);
-      if (!Number.isFinite(v)) v = a;
-      v = Math.round(v);
-      if (v < a) v = a;
-      if (v > b) v = b;
-      return v;
-    }
 
-    // ranges
     const ranges = {
       temp:    { min: 0,  max: 50 },
       hum:     { min: 0,  max: 100 },
@@ -464,37 +493,21 @@
       }
     }
 
-    function setModeUI(mode){
-      currentMode = mode;
+    function setMode(mode){
+      selectedMode = mode;
       btnAuto.classList.toggle("active", mode === "auto");
       btnManual.classList.toggle("active", mode === "manual");
-      manualBlock.style.display = (mode === "manual") ? "block" : "none";
-    }
 
-    async function sendCmd(body){
-      if (!currentDevice){
-        alert("Clique Assistir em um device antes de enviar comando.");
-        return;
-      }
-
-      cmdOut.textContent = JSON.stringify(body, null, 2);
-
-      const r = await api(`/api/device/${encodeURIComponent(currentDevice)}/cmd`, {
-        method: "POST",
-        headers: { "Content-Type":"application/json" },
-        body: JSON.stringify(body)
-      });
-
-      if (!r.ok){
-        alert("Falha ao enviar comando.");
-        return;
-      }
+      // opcional: desabilita slider quando está no automático
+      rngBright.disabled = (mode !== "manual");
+      rngBright.style.opacity = (mode === "manual") ? "1" : ".55";
+      if (meta2) meta2.textContent = (mode === "auto")
+        ? "Modo Automático selecionado. (A luminária segue o sensor.)"
+        : "Modo Manual selecionado. Ajuste o brilho e envie.";
     }
 
     async function loadDevices(){
       setStatus("Buscando devices…", "warn");
-
-      const prev = sel.value || "";
       const r = await api("/api/devices");
       const j = await r.json();
 
@@ -506,9 +519,6 @@
         o.value = d; o.textContent = d;
         sel.appendChild(o);
       });
-
-      // tenta preservar seleção anterior
-      if (prev && devices.includes(prev)) sel.value = prev;
 
       if (devices.length === 0){
         setStatus("Nenhum device ainda (publique telemetria)", "warn");
@@ -522,8 +532,6 @@
       currentDevice = device;
 
       setStatus("Abrindo stream…", "warn");
-      out.textContent = "Conectando stream…";
-      meta.textContent = "—";
 
       es = new EventSource(`/api/stream/${encodeURIComponent(device)}`);
 
@@ -534,7 +542,7 @@
         if (data.last){
           renderTelemetry(data.last);
         } else {
-          out.textContent = "Aguardando telemetria…";
+          if (meta2) meta2.textContent = "Aguardando telemetria…";
         }
       });
 
@@ -543,14 +551,15 @@
         renderTelemetry(rec);
       });
 
-      es.onerror = () => setStatus("Stream caiu (Render pode ter dormido). Clique Assistir.", "bad");
+      es.onerror = () => setStatus("Stream caiu. Clique Assistir.", "bad");
     }
 
     function renderTelemetry(record){
       const payload = (record.parsed ?? null);
 
-      out.textContent = JSON.stringify(payload ?? record.raw, null, 2);
-      meta.textContent = `Tópico: ${record.topic} · ${new Date(record.ts).toLocaleString()}`;
+      // continua preenchendo (mas escondido)
+      if (out) out.textContent = JSON.stringify(payload ?? record.raw, null, 2);
+      if (meta) meta.textContent = `Tópico: ${record.topic} · ${new Date(record.ts).toLocaleString()}`;
 
       if (payload && typeof payload === "object"){
         const t  = Number(payload.temp);
@@ -565,7 +574,6 @@
       }
     }
 
-    // Events
     btnWatch.onclick = () => {
       const d = sel.value;
       if (!d){
@@ -579,40 +587,46 @@
       await loadDevices();
     };
 
-    btnAuto.onclick = async () => {
-      setModeUI("auto");
-      await sendCmd({ mode: "auto" });
+    btnAuto.onclick = () => setMode("auto");
+    btnManual.onclick = () => setMode("manual");
+
+    rngBright.oninput = () => {
+      rngBrightVal.textContent = String(rngBright.value);
     };
 
-    btnManual.onclick = async () => {
-      setModeUI("manual");
-      const v = clampInt(num.value, 0, 100);
-      rng.value = String(v);
-      num.value = String(v);
-      await sendCmd({ mode: "manual", matrixPercent: v });
-    };
+    btnSend.onclick = async () => {
+      if (!currentDevice){
+        alert("Clique Assistir em um device antes de enviar comando.");
+        return;
+      }
 
-    // sincroniza slider <-> number (não envia ainda)
-    rng.addEventListener("input", () => {
-      num.value = String(clampInt(rng.value, 0, 100));
-    });
-    num.addEventListener("input", () => {
-      const v = clampInt(num.value, 0, 100);
-      num.value = String(v);
-      rng.value = String(v);
-    });
+      const body = (selectedMode === "auto")
+        ? { mode: "auto" }
+        : { mode: "manual", brightness: Number(rngBright.value) };
 
-    // envia só quando clicar aplicar (evita flood)
-    btnApply.onclick = async () => {
-      if (currentMode !== "manual") setModeUI("manual");
-      const v = clampInt(num.value, 0, 100);
-      await sendCmd({ mode: "manual", matrixPercent: v });
+      // mantido escondido, mas atualizado
+      if (cmdOut) cmdOut.textContent = JSON.stringify(body, null, 2);
+
+      const r = await api(`/api/device/${encodeURIComponent(currentDevice)}/cmd`, {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify(body)
+      });
+
+      if (!r.ok) {
+        alert("Falha ao enviar comando.");
+        return;
+      }
+
+      if (meta2) {
+        meta2.textContent = "Comando enviado: " + JSON.stringify(body);
+      }
     };
 
     // init
     (async () => {
+      setMode("auto");
       setStatus("Inicializando…", "warn");
-      setModeUI("auto");
       await loadDevices();
     })();
   </script>
