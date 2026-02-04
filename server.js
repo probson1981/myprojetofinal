@@ -2,6 +2,7 @@ import express from "express";
 import mqtt from "mqtt";
 import crypto from "crypto";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -13,7 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 
 /**
  * =========================
- * CONFIG (Render -> Environment Variables)
+ * CONFIG
  * =========================
  */
 const MQTT_URL = process.env.MQTT_URL || "mqtt://broker.hivemq.com:1883";
@@ -24,8 +25,72 @@ const TOPIC_PREFIX = process.env.TOPIC_PREFIX || "embarcatech";
 const DASH_USER = process.env.DASH_USER || "admin";
 const DASH_PASS = process.env.DASH_PASS || "admin123";
 const AUTH_SECRET = process.env.AUTH_SECRET || "CHANGE_ME_TO_A_LONG_RANDOM_SECRET_32+";
-
 const COOKIE_NAME = "auth";
+
+/**
+ * =========================
+ * ALIASES (device_id -> "Luminária 01")
+ * Persistência em: data/aliases.json
+ * =========================
+ */
+const ALIASES_FILE = path.join(__dirname, "data", "aliases.json");
+
+function ensureAliasesFile() {
+  const dir = path.dirname(ALIASES_FILE);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(ALIASES_FILE)) fs.writeFileSync(ALIASES_FILE, "{}", "utf8");
+}
+
+function readAliases() {
+  ensureAliasesFile();
+  try {
+    const raw = fs.readFileSync(ALIASES_FILE, "utf8");
+    const obj = JSON.parse(raw || "{}");
+    return (obj && typeof obj === "object") ? obj : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeAliases(obj) {
+  ensureAliasesFile();
+  const tmp = `${ALIASES_FILE}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(obj, null, 2), "utf8");
+  fs.renameSync(tmp, ALIASES_FILE);
+}
+
+let aliases = readAliases();
+
+function nextLumNumber() {
+  // procura maior "Luminária NN" e soma 1
+  let max = 0;
+  for (const v of Object.values(aliases)) {
+    const m = String(v).match(/lumin[áa]ria\s+(\d+)/i);
+    if (m) max = Math.max(max, parseInt(m[1], 10) || 0);
+  }
+  return max + 1;
+}
+
+function getOrCreateAlias(deviceId) {
+  if (!deviceId) return "";
+  if (aliases[deviceId]) return aliases[deviceId];
+
+  const n = nextLumNumber();
+  const name = `Luminária ${String(n).padStart(2, "0")}`;
+  aliases[deviceId] = name;
+  writeAliases(aliases);
+  return name;
+}
+
+function sanitizeAliasName(name) {
+  name = String(name || "").trim();
+  // mantém simples e seguro
+  name = name.replace(/\s+/g, " ");
+  if (name.length > 40) name = name.slice(0, 40);
+  // se ficar vazio, invalida
+  if (!name) return "";
+  return name;
+}
 
 /**
  * =========================
@@ -128,10 +193,7 @@ app.post("/login", (req, res) => {
   const pass = String(req.body.pass || "");
 
   if (user === DASH_USER && pass === DASH_PASS) {
-    const token = signToken({
-      u: user,
-      exp: Date.now() + 12 * 60 * 60 * 1000 // 12 horas
-    });
+    const token = signToken({ u: user, exp: Date.now() + 12 * 60 * 60 * 1000 });
 
     res.setHeader(
       "Set-Cookie",
@@ -149,14 +211,14 @@ app.get("/logout", (req, res) => {
 
 /**
  * =========================
- * Health check (Render)
+ * Health check
  * =========================
  */
 app.get("/health", (req, res) => res.status(200).send("ok"));
 
 /**
  * =========================
- * Static (dashboard) protegido
+ * Static protegido
  * =========================
  */
 app.use("/", requireAuth, express.static(path.join(__dirname, "public")));
@@ -166,8 +228,8 @@ app.use("/", requireAuth, express.static(path.join(__dirname, "public")));
  * MQTT Bridge
  * =========================
  */
-const latestByDevice = new Map();     // device -> {ts, topic, raw, parsed}
-const sseByDevice = new Map();        // device -> Set(res)
+const latestByDevice = new Map(); // device -> {ts, topic, raw, parsed}
+const sseByDevice = new Map();    // device -> Set(res)
 
 function getDeviceFromTopic(topic) {
   const parts = topic.split("/");
@@ -177,12 +239,8 @@ function getDeviceFromTopic(topic) {
 }
 
 function sseSend(res, event, obj) {
-  try {
-    res.write(`event: ${event}\n`);
-    res.write(`data: ${JSON.stringify(obj)}\n\n`);
-  } catch {
-    // se a conexão morreu, ignora
-  }
+  res.write(`event: ${event}\n`);
+  res.write(`data: ${JSON.stringify(obj)}\n\n`);
 }
 
 const mqttOpts = {
@@ -214,11 +272,14 @@ mqttClient.on("message", (topic, payloadBuf) => {
   const device = getDeviceFromTopic(topic);
   if (!device) return;
 
+  // garante alias ao primeiro “avistamento”
+  const alias = getOrCreateAlias(device);
+
   const raw = payloadBuf.toString("utf8");
   let parsed = null;
   try { parsed = JSON.parse(raw); } catch {}
 
-  const record = { ts: Date.now(), topic, raw, parsed };
+  const record = { ts: Date.now(), topic, raw, parsed, device, alias };
   latestByDevice.set(device, record);
 
   const clients = sseByDevice.get(device);
@@ -233,56 +294,53 @@ mqttClient.on("message", (topic, payloadBuf) => {
  * =========================
  */
 app.get("/api/devices", requireAuth, (req, res) => {
-  res.json({ devices: Array.from(latestByDevice.keys()).sort() });
+  const ids = Array.from(latestByDevice.keys()).sort();
+  const devices = ids.map((id) => ({ id, name: getOrCreateAlias(id) }));
+  res.json({ devices });
+});
+
+app.get("/api/aliases", requireAuth, (req, res) => {
+  // retorna todos
+  res.json({ aliases });
+});
+
+// opcional: renomear pelo site (se quiser no futuro)
+app.post("/api/device/:device/alias", requireAuth, (req, res) => {
+  const device = String(req.params.device || "").trim();
+  if (!device) return res.status(400).json({ ok: false, error: "device_required" });
+
+  const name = sanitizeAliasName(req.body?.name);
+  if (!name) return res.status(400).json({ ok: false, error: "invalid_name" });
+
+  aliases[device] = name;
+  writeAliases(aliases);
+  res.json({ ok: true, device, name });
 });
 
 app.get("/api/state", requireAuth, (req, res) => {
   res.json({
     mqtt: { url: MQTT_URL, connected: !!mqttClient.connected },
     prefix: TOPIC_PREFIX,
-    devices: Array.from(latestByDevice.keys())
+    devices: Array.from(latestByDevice.keys()),
+    aliases
   });
 });
 
-/**
- * =========================
- * SSE (robusto): heartbeat + retry
- * =========================
- */
 app.get("/api/stream/:device", requireAuth, (req, res) => {
   const device = String(req.params.device || "").trim();
   if (!device) return res.status(400).json({ error: "device required" });
 
-  // evita o Node “matar” a conexão por timeout
-  req.socket.setTimeout(0);
-
-  res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
-  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
-  // evita buffering em proxies (quando suportado)
-  res.setHeader("X-Accel-Buffering", "no");
-
-  // dica pro browser: em caso de queda, tentar em 2s
-  res.write(`retry: 2000\n\n`);
-
-  if (typeof res.flushHeaders === "function") res.flushHeaders();
 
   const last = latestByDevice.get(device) || null;
-  sseSend(res, "hello", { device, hasLast: !!last, last });
+  sseSend(res, "hello", { device, name: getOrCreateAlias(device), hasLast: !!last, last });
 
   if (!sseByDevice.has(device)) sseByDevice.set(device, new Set());
   sseByDevice.get(device).add(res);
 
-  // heartbeat: mantém a conexão viva em proxies/Render
-  const hb = setInterval(() => {
-    try {
-      // comentário SSE (não vira evento no JS)
-      res.write(`: ping ${Date.now()}\n\n`);
-    } catch {}
-  }, 15000);
-
   req.on("close", () => {
-    clearInterval(hb);
     const set = sseByDevice.get(device);
     if (set) {
       set.delete(res);
@@ -313,4 +371,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log("[HTTP] listening on", PORT);
   console.log("[CFG] TOPIC_PREFIX =", TOPIC_PREFIX);
+  console.log("[CFG] ALIASES_FILE =", ALIASES_FILE);
 });
