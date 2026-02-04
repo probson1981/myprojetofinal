@@ -15,17 +15,7 @@ app.use(express.urlencoded({ extended: true }));
  * =========================
  * CONFIG (Render -> Environment Variables)
  * =========================
- * MQTT_URL     = mqtt://broker.hivemq.com:1883  (funciona com seu Pico atual)
- * MQTT_USER    = (opcional)
- * MQTT_PASS    = (opcional)
- *
- * TOPIC_PREFIX = embarcatech   (deve bater com seu firmware)
- *
- * DASH_USER    = admin
- * DASH_PASS    = uma_senha_forte
- * AUTH_SECRET  = uma string longa aleatória (>= 32 chars)
  */
-
 const MQTT_URL = process.env.MQTT_URL || "mqtt://broker.hivemq.com:1883";
 const MQTT_USER = process.env.MQTT_USER || "";
 const MQTT_PASS = process.env.MQTT_PASS || "";
@@ -143,7 +133,6 @@ app.post("/login", (req, res) => {
       exp: Date.now() + 12 * 60 * 60 * 1000 // 12 horas
     });
 
-    // cookie seguro (Render usa HTTPS no domínio onrender.com)
     res.setHeader(
       "Set-Cookie",
       `${COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=${12 * 60 * 60}`
@@ -154,10 +143,7 @@ app.post("/login", (req, res) => {
 });
 
 app.get("/logout", (req, res) => {
-  res.setHeader(
-    "Set-Cookie",
-    `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=0`
-  );
+  res.setHeader("Set-Cookie", `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=0`);
   res.redirect("/login");
 });
 
@@ -178,9 +164,6 @@ app.use("/", requireAuth, express.static(path.join(__dirname, "public")));
 /**
  * =========================
  * MQTT Bridge
- * Espera tópicos:
- *   TOPIC_PREFIX/<device_id>/telemetry  (seu Pico publica aqui)
- *   TOPIC_PREFIX/<device_id>/cmd        (servidor publica comando aqui)
  * =========================
  */
 const latestByDevice = new Map();     // device -> {ts, topic, raw, parsed}
@@ -194,8 +177,12 @@ function getDeviceFromTopic(topic) {
 }
 
 function sseSend(res, event, obj) {
-  res.write(`event: ${event}\n`);
-  res.write(`data: ${JSON.stringify(obj)}\n\n`);
+  try {
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(obj)}\n\n`);
+  } catch {
+    // se a conexão morreu, ignora
+  }
 }
 
 const mqttOpts = {
@@ -257,13 +244,28 @@ app.get("/api/state", requireAuth, (req, res) => {
   });
 });
 
+/**
+ * =========================
+ * SSE (robusto): heartbeat + retry
+ * =========================
+ */
 app.get("/api/stream/:device", requireAuth, (req, res) => {
   const device = String(req.params.device || "").trim();
   if (!device) return res.status(400).json({ error: "device required" });
 
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
+  // evita o Node “matar” a conexão por timeout
+  req.socket.setTimeout(0);
+
+  res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
   res.setHeader("Connection", "keep-alive");
+  // evita buffering em proxies (quando suportado)
+  res.setHeader("X-Accel-Buffering", "no");
+
+  // dica pro browser: em caso de queda, tentar em 2s
+  res.write(`retry: 2000\n\n`);
+
+  if (typeof res.flushHeaders === "function") res.flushHeaders();
 
   const last = latestByDevice.get(device) || null;
   sseSend(res, "hello", { device, hasLast: !!last, last });
@@ -271,7 +273,16 @@ app.get("/api/stream/:device", requireAuth, (req, res) => {
   if (!sseByDevice.has(device)) sseByDevice.set(device, new Set());
   sseByDevice.get(device).add(res);
 
+  // heartbeat: mantém a conexão viva em proxies/Render
+  const hb = setInterval(() => {
+    try {
+      // comentário SSE (não vira evento no JS)
+      res.write(`: ping ${Date.now()}\n\n`);
+    } catch {}
+  }, 15000);
+
   req.on("close", () => {
+    clearInterval(hb);
     const set = sseByDevice.get(device);
     if (set) {
       set.delete(res);
@@ -295,7 +306,7 @@ app.post("/api/device/:device/cmd", requireAuth, (req, res) => {
 
 /**
  * =========================
- * Listen (Render usa PORT)
+ * Listen
  * =========================
  */
 const PORT = process.env.PORT || 3000;
