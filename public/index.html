@@ -472,34 +472,33 @@
       }
     }
 
-    async function loadDevices({ keepSelection = true } = {}){
-      const prev = keepSelection ? sel.value : "";
+    async function loadDevices(){
+      setStatus("Buscando luminárias…", "warn");
       const r = await api("/api/devices");
       const j = await r.json();
-
+    
       const devices = (j.devices || []);
-      const newSet = new Set(devices);
-
       sel.innerHTML = "";
-      for (const d of devices) {
+    
+      devices.forEach(obj => {
+        const id = obj.id;
+        const name = obj.name || id;
+    
         const o = document.createElement("option");
-        o.value = d;
-        o.textContent = d;
+        o.value = id;
+    
+        // humanizado + ainda rastreável
+        o.textContent = `${name} — ${id}`;
         sel.appendChild(o);
-      }
-
-      if (prev && newSet.has(prev)) {
-        sel.value = prev;
-      } else if (devices.length > 0) {
-        sel.value = devices[0];
-      }
-
+      });
+    
       if (devices.length === 0){
         setStatus("Nenhuma luminária ainda (publique telemetria)", "warn");
       } else {
-        if (!currentDevice) setStatus("Selecione e clique Assistir", "ok");
+        setStatus("Selecione uma luminária e clique Assistir", "ok");
       }
     }
+
 
     function closeStream(){
       if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
